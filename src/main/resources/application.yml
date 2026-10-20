@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: leave-assistant
+  datasource:
+    url: jdbc:postgresql://localhost:5432/leaveassistant
+    username: leaveassistant
+    password: leaveassistant
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama3.1:8b          # pick a model that supports tools; change after spike S3
+      embedding:
+        options:
+          model: nomic-embed-text     # check its vector size on the Ollama model page
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 768               # must match the embedding model
+        distance-type: cosine_distance
+        index-type: hnsw
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
