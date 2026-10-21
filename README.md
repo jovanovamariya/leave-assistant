@@ -40,7 +40,9 @@ Health check: http://localhost:8080/actuator/health
 ## Roadmap
 
 - [x] Project scaffold, database, CI
-- [ ] Working-day calculation, balance, overlap and status rules, with unit tests
+- [x] Leave tables and demo data (Flyway migrations)
+- [x] Working-day, balance and overlap rules, with unit tests
+- [ ] Status rules (allowed status changes, with history)
 - [ ] Leave request API (create, list, edit, cancel, approve, reject)
 - [ ] Policy ingestion and semantic search with pgvector
 - [ ] Assistant with cited answers and a refusal rule
