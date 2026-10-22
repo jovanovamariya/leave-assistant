@@ -43,10 +43,24 @@ Health check: http://localhost:8080/actuator/health
 - [x] Leave tables and demo data (Flyway migrations)
 - [x] Working-day, balance and overlap rules, with unit tests
 - [x] Status rules (allowed status changes)
-- [ ] Leave request API (create, list, edit, cancel, approve, reject)
+- [x] Leave request API (create, list, get, history, cancel, approve, reject, balances)
 - [ ] Policy ingestion and semantic search with pgvector
 - [ ] Assistant with cited answers and a refusal rule
 - [ ] Assistant tools: balance, my requests, draft request
 - [ ] Evaluation harness (20 labelled questions)
 - [ ] React UI
 - [ ] Metrics, Dockerfile, docker-compose, Kubernetes manifests
+
+## API
+
+| Method and path | Purpose |
+| --- | --- |
+| POST /api/leave-requests | Create a request (201) |
+| GET /api/leave-requests | List requests |
+| GET /api/leave-requests/{id} | Read one request |
+| GET /api/leave-requests/{id}/history | Status history |
+| POST /api/leave-requests/{id}/cancel, /approve, /reject | Change status |
+| GET /api/balances | Allowance, used and remaining days |
+
+Errors use problem responses: 400 for invalid input, 404 for an unknown request, 409 when a business
+rule says no (balance, overlap, status). A Postman collection is in `docs/postman/`.
