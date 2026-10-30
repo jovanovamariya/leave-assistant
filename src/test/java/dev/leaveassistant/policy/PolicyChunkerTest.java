@@ -98,4 +98,14 @@ class PolicyChunkerTest {
     void aTinyLimitIsRejected() {
         assertThrows(IllegalArgumentException.class, () -> new PolicyChunker(50));
     }
+
+    @Test
+    void aFooterWithTheTextAndThePageNumberOnOneLineIsIgnored() {
+        List<PolicyChunk> chunks = chunk(900, new PolicyPage(2,
+                "10. Public holidays\nA public holiday is never deducted.\n"
+                        + "Harbor & Pine Software (fictional company) - Leave Policy Page 2"));
+
+        assertEquals(1, chunks.size());
+        assertEquals("10. Public holidays\nA public holiday is never deducted.", chunks.get(0).text());
+    }
 }

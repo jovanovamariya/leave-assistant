@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 public class PolicyChunker {
 
     private static final Pattern HEADING = Pattern.compile("^\\d{1,2}\\.\\s+\\S.*$");
-    private static final Pattern NOISE = Pattern.compile("^(Page \\d+|.*\\(fictional company\\) - Leave Policy)$");
+    private static final Pattern NOISE = Pattern.compile("^(Page \\d+|[^.]*\\(fictional company\\) - Leave Policy(\\s+Page \\d+)?)$");
     private static final String FIRST_SECTION = "Introduction";
 
     private final int maxChars;

@@ -36,3 +36,7 @@ management:
     health:
       probes:
         enabled: true
+
+app:
+  policy:
+    min-score: 0.6
