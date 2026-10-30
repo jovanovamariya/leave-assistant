@@ -7,8 +7,9 @@ import java.util.regex.Pattern;
 
 /**
  * Splits the text of a policy into chunks, one or more per numbered section ("4. How to request leave").
- * A section that continues on the next page keeps its name. Each chunk text starts with its section
- * heading, which gives the embedding model context. Page footers are ignored.
+ * A section that continues on the next page is kept together: its text is joined across the page break and
+ * the chunk records the page where the section starts. Each chunk text starts with its section heading,
+ * which gives the embedding model context. Page footers are ignored.
  * Plain Java on purpose: no Spring and no AI, so it is easy to test.
  */
 public class PolicyChunker {
@@ -33,22 +34,25 @@ public class PolicyChunker {
     public List<PolicyChunk> chunk(String document, List<PolicyPage> pages) {
         List<PolicyChunk> chunks = new ArrayList<>();
         String section = FIRST_SECTION;
+        int sectionPage = pages.isEmpty() ? 1 : pages.get(0).number();
+        // The body is NOT flushed at the end of a page: a section may continue on the next one.
+        StringBuilder body = new StringBuilder();
         for (PolicyPage page : pages) {
-            StringBuilder body = new StringBuilder();
             for (String rawLine : page.text().split("\\R")) {
                 String line = rawLine.strip().replaceAll("\\s+", " ");
                 if (line.isEmpty() || NOISE.matcher(line).matches()) {
                     continue;
                 }
                 if (HEADING.matcher(line).matches()) {
-                    addChunks(chunks, document, page.number(), section, body);
+                    addChunks(chunks, document, sectionPage, section, body);
                     section = line;
+                    sectionPage = page.number();
                 } else {
-                    body.append(line.startsWith("\u2022") || body.isEmpty() ? "\n" : " ").append(line);
+                    body.append(line.startsWith("•") || body.isEmpty() ? "\n" : " ").append(line);
                 }
             }
-            addChunks(chunks, document, page.number(), section, body);
         }
+        addChunks(chunks, document, sectionPage, section, body);
         return chunks;
     }
 

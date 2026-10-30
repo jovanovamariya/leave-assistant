@@ -37,11 +37,12 @@ class PolicyChunkerTest {
                 new PolicyPage(1, "4. Request\nFirst part."),
                 new PolicyPage(2, "Second part.\n5. Status\nStatus text."));
 
-        assertEquals(3, chunks.size());
+        assertEquals(2, chunks.size());
+        assertEquals(1, chunks.get(0).page());
+        assertEquals("4. Request", chunks.get(0).section());
+        assertEquals("4. Request\nFirst part. Second part.", chunks.get(0).text());
         assertEquals(2, chunks.get(1).page());
-        assertEquals("4. Request", chunks.get(1).section());
-        assertEquals("4. Request\nSecond part.", chunks.get(1).text());
-        assertEquals("5. Status", chunks.get(2).section());
+        assertEquals("5. Status", chunks.get(1).section());
     }
 
     @Test
@@ -107,5 +108,19 @@ class PolicyChunkerTest {
 
         assertEquals(1, chunks.size());
         assertEquals("10. Public holidays\nA public holiday is never deducted.", chunks.get(0).text());
+    }
+
+    @Test
+    void aSectionThatContinuesOnTheNextPageBecomesOneChunkOnItsStartPage() {
+        List<PolicyChunk> chunks = chunk(900,
+                new PolicyPage(1, "6. Cancelling leave\n• You can cancel a pending request at any time."),
+                new PolicyPage(2, "• You can cancel an approved request only before its start date.\n7. Sick leave\nTen days."));
+
+        assertEquals(2, chunks.size());
+        assertEquals(1, chunks.get(0).page());
+        assertEquals("6. Cancelling leave", chunks.get(0).section());
+        assertTrue(chunks.get(0).text().contains("pending request"));
+        assertTrue(chunks.get(0).text().contains("approved request"));
+        assertEquals(2, chunks.get(1).page());
     }
 }
