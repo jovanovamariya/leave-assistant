@@ -1,6 +1,10 @@
 package dev.leaveassistant.policy;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -12,6 +16,7 @@ import reactor.core.publisher.Flux;
 public class PolicyAnswerService {
 
     static final int TOP_K = 4;
+    private static final Pattern SECTION_MENTION = Pattern.compile("(?i)section\\s+(\\d{1,2})");
 
     private final PolicySearchService search;
     private final AnswerModel model;
@@ -32,15 +37,27 @@ public class PolicyAnswerService {
             return model.stream(AnswerPrompt.system(), user)
                     .doOnNext(full::append)
                     .map(AnswerEvent::token)
-                    .concatWith(Flux.defer(() -> Flux.just(AnswerEvent.done(
-                            full.toString().strip().startsWith(AnswerPrompt.REFUSAL) ? List.of() : citations(passages)))));
+                    .concatWith(Flux.defer(() -> Flux.just(AnswerEvent.done(sources(full.toString(), passages)))));
         });
     }
 
-    private static List<AnswerEvent.Citation> citations(List<PolicyPassage> passages) {
-        return passages.stream()
+    /** No sources for a refusal; otherwise the sections the answer names, or all found ones if it names none. */
+    static List<AnswerEvent.Citation> sources(String answer, List<PolicyPassage> passages) {
+        if (answer.strip().startsWith(AnswerPrompt.REFUSAL)) {
+            return List.of();
+        }
+        List<AnswerEvent.Citation> all = passages.stream()
                 .map(p -> new AnswerEvent.Citation(p.document(), p.page(), p.section()))
                 .distinct()
                 .toList();
+        Set<String> named = new HashSet<>();
+        Matcher matcher = SECTION_MENTION.matcher(answer);
+        while (matcher.find()) {
+            named.add(matcher.group(1));
+        }
+        List<AnswerEvent.Citation> cited = all.stream()
+                .filter(c -> named.contains(c.section().split("\\.")[0].strip()))
+                .toList();
+        return cited.isEmpty() ? all : cited;
     }
 }

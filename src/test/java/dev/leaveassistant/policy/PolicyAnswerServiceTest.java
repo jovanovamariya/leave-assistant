@@ -78,4 +78,24 @@ class PolicyAnswerServiceTest {
             assertEquals("The question must not be empty", expected.getMessage());
         }
     }
+
+    private static final PolicyPassage REQUEST = new PolicyPassage("4. How to request leave\nSubmit the request.",
+            "Leave-Policy.pdf", 1, "4. How to request leave", 0.68);
+
+    @Test
+    void onlyTheSectionsNamedInTheAnswerAreShownAsSources() {
+        List<AnswerEvent> events = service(List.of(CANCEL, REQUEST), Flux.just("Only before the start date (section 6)."))
+                .answer("can I cancel approved leave").collectList().block();
+
+        assertEquals(List.of(new AnswerEvent.Citation("Leave-Policy.pdf", 1, "6. Cancelling leave")),
+                events.get(events.size() - 1).citations());
+    }
+
+    @Test
+    void whenTheAnswerNamesNoSectionAllFoundSectionsAreShown() {
+        List<AnswerEvent> events = service(List.of(CANCEL, REQUEST), Flux.just("Only before the start date."))
+                .answer("can I cancel approved leave").collectList().block();
+
+        assertEquals(2, events.get(events.size() - 1).citations().size());
+    }
 }
